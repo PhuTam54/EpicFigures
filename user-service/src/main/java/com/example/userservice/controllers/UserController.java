@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,11 +43,13 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "/trash")
     public ResponseEntity<?> getInTrashUsers(@RequestParam(name = "page") int page, @RequestParam(name = "limit") int limit) {
         return ResponseEntity.ok(userService.getInTrash(PageRequest.of(page - 1, limit)));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping(path = "/username")
     public ResponseEntity<UserDTO> getUserByUsername(@RequestParam(name = "username") String username) {
         UserDTO user = userService.findByUsername(username);
@@ -65,6 +68,7 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @Secured({"ROLE_ADMIN"})
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable(name = "id") Long id) {
         userService.moveToTrash(id);
