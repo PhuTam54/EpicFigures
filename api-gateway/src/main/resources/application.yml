@@ -33,8 +33,7 @@ spring:
               - PUT
               - DELETE
             allowCredentials: true
-        csrf:
-          enabled: false
+
   application:
     name: api-gateway
 
@@ -44,6 +43,8 @@ spring:
         jwt:
           jwk-set-uri: http://localhost:8080/auth/keys
 
+  main:
+    allow-bean-definition-overriding: true
 server:
   port: 8080
 

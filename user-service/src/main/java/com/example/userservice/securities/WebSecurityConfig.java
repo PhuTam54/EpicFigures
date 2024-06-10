@@ -56,37 +56,34 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-////    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http.csrf(AbstractHttpConfigurer::disable)  // Vô hiệu hóa CSRF
-//                .authorizeHttpRequests(authorizeRequests ->
-//                        authorizeRequests
-//                            .requestMatchers("/oauth2/user").authenticated()
-////                            .requestMatchers("/api/v1/users/**").authenticated() // Yêu cầu xác thực cho /api/v1/**
-//                            .requestMatchers("/api/private/**").hasRole("ADMIN")//.anyRequest().hasAnyRole("ADMIN") // Yêu cầu xác thực cho /api/private/**
-//                            .requestMatchers("/api/v1/auth/logout").authenticated()
-////                            .requestMatchers("/oauth2/login-success").authenticated()
-//                            .anyRequest().permitAll() // Mở quyền truy cập cho tất cả các yêu cầu khác
-//                )
-////                .sessionManagement(sessionManagement ->
-////                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-////                )
-//                .headers(headers -> headers
-//                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin
-//                        )
-//                )
-//                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
-//                .exceptionHandling(exceptionHandling ->
-//                        exceptionHandling.authenticationEntryPoint(unauthorizedHandler) // Xử lý lỗi xác thực
-//                )
-//                .oauth2Login(oauth2Login ->
-//                        oauth2Login
-//                                .loginPage("/login")
-//                                .defaultSuccessUrl("/oauth2/login-success")
-//                                .failureUrl("/oauth2/login-failure")
-//                ); // Thêm bộ lọc JWT;
-//
-//        return http.build();
-//    }
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)  // Vô hiệu hóa CSRF
+                .authorizeHttpRequests(authorizeRequests ->
+                        authorizeRequests
+                            .requestMatchers("/oauth2/user").authenticated()
+//                            .requestMatchers("/api/v1/users/**").authenticated() // Yêu cầu xác thực cho /api/v1/**
+                            .requestMatchers("/api/private/**").hasRole("ADMIN")//.anyRequest().hasAnyRole("ADMIN") // Yêu cầu xác thực cho /api/private/**
+                            .requestMatchers("/api/v1/auth/logout").authenticated()
+//                            .requestMatchers("/oauth2/login-success").authenticated()
+                            .anyRequest().permitAll()
+                )
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin
+                        )
+                )
+                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(unauthorizedHandler) // Xử lý lỗi xác thực
+                )
+                .oauth2Login(oauth2Login ->
+                        oauth2Login
+                                .loginPage("/login")
+                                .defaultSuccessUrl("/oauth2/login-success")
+                                .failureUrl("/oauth2/login-failure")
+                );
+
+        return http.build();
+    }
 
 }

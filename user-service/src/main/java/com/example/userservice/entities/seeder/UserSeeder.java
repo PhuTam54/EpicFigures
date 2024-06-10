@@ -35,6 +35,11 @@ public class UserSeeder implements CommandLineRunner {
             return roleRepository.save(newRole);
         });
 
+        Role roleAdmin = roleRepository.findById(2L).orElseGet(() -> {
+            Role newRole = new Role(2, ERole.ROLE_ADMIN);
+            return roleRepository.save(newRole);
+        });
+
         List<User> users = new ArrayList<>();
         if (role.getId() == 1) {
             for (int i = 0; i < 10; i++) {
@@ -62,7 +67,13 @@ public class UserSeeder implements CommandLineRunner {
                 String phone = faker.phoneNumber().cellPhone();
                 Set<Role> roles = new HashSet<>();
                 roles.add(role);
-                User user = new User(username.toString(), password, address, email.toString(), phone, roles);
+                User user;
+                if (i == 0) {
+                    roles.add(roleAdmin);
+                    user = new User(username.toString(), password, address, email.toString(), phone, roles);
+                } else {
+                    user = new User(username.toString(), password, address, email.toString(), phone, roles);
+                }
                 users.add(user);
             }
         }
