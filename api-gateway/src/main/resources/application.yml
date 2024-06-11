@@ -6,6 +6,8 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**
+          filters:
+              - JwtAuthenticationFilter
         - id: auth-service
           uri: lb://user-service
           predicates:
@@ -14,14 +16,26 @@ spring:
           uri: lb://product-service
           predicates:
             - Path=/api/v1/products/**
+          filters:
+            - JwtAuthenticationFilter
+        - id: categories-service
+          uri: lb://product-service
+          predicates:
+            - Path=/api/v1/categories/**
+          filters:
+            - JwtAuthenticationFilter
         - id: order-service
           uri: lb://order-service
           predicates:
             - Path=/api/v1/order/**
+          filters:
+            - JwtAuthenticationFilter
         - id: inventory-service
           uri: lb://inventory-service
           predicates:
             - Path=/api/v1/inventory/**
+          filters:
+            - JwtAuthenticationFilter
       globals:
         corsConfigurations:
           '[/**]':
@@ -33,6 +47,8 @@ spring:
               - PUT
               - DELETE
             allowCredentials: true
+        csrf:
+          enabled: false
 
   application:
     name: api-gateway
@@ -45,6 +61,8 @@ spring:
 
   main:
     allow-bean-definition-overriding: true
+    web-application-type: reactive
+
 server:
   port: 8080
 
@@ -56,3 +74,19 @@ eureka:
     register-with-eureka: true
   instance:
     hostname: localhost
+    prefer-ip-address: true
+
+application:
+  jwtExpirationMs: 86400000
+
+logging:
+  level:
+    org.springframework.web.HttpLogging: TRACE
+    reactor.netty.http.server: DEBUG
+    reactor.netty.http.client: DEBUG
+
+jwt:
+  secret: ThisIsASecretKeyOfPhuTam54
+
+authentication:
+  enabled: true
