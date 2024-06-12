@@ -1,9 +1,9 @@
 package com.example.userservice.securities;
 
+import com.example.userservice.securities.jwt.AccessDeniedHandler;
 import com.example.userservice.securities.jwt.AuthEntryPointJwt;
 import com.example.userservice.securities.jwt.AuthTokenFilter;
 import com.example.userservice.securities.services.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,11 +29,13 @@ public class WebSecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthTokenFilter authTokenFilter;
     private final AuthEntryPointJwt unauthorizedHandler;
+    private final AccessDeniedHandler accessDeniedHandler;
 
-    public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, AuthTokenFilter authTokenFilter, AuthEntryPointJwt unauthorizedHandler) {
+    public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, AuthTokenFilter authTokenFilter, AuthEntryPointJwt unauthorizedHandler, AccessDeniedHandler accessDeniedHandler) {
         this.userDetailsService = userDetailsService;
         this.authTokenFilter = authTokenFilter;
         this.unauthorizedHandler = unauthorizedHandler;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -61,10 +63,12 @@ public class WebSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)  // Vô hiệu hóa CSRF
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                            .requestMatchers("/oauth2/user").authenticated()
-//                            .requestMatchers("/api/v1/users/**").authenticated() // Yêu cầu xác thực cho /api/v1/**
-                            .requestMatchers("/api/private/**").hasRole("ADMIN")//.anyRequest().hasAnyRole("ADMIN") // Yêu cầu xác thực cho /api/private/**
-                            .requestMatchers("/api/v1/auth/logout").authenticated()
+                            .requestMatchers("/api/v1/auth/login").permitAll()
+                            .requestMatchers("/api/v1/auth/register").permitAll()
+//                            .requestMatchers("/oauth2/user").authenticated()
+//                            .requestMatchers("/api/v1/users/**").permitAll() // Yêu cầu xác thực cho /api/v1/**
+//                            .requestMatchers("/api/private/**").hasRole("ADMIN")//.anyRequest().hasAnyRole("ADMIN") // Yêu cầu xác thực cho /api/private/**
+//                            .requestMatchers("/api/v1/auth/logout").authenticated()
 //                            .requestMatchers("/oauth2/login-success").authenticated()
                             .anyRequest().permitAll()
                 )
@@ -75,6 +79,9 @@ public class WebSecurityConfig {
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling.authenticationEntryPoint(unauthorizedHandler) // Xử lý lỗi xác thực
+                )
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.accessDeniedHandler(accessDeniedHandler) // Xử lý lỗi truy cập
                 )
                 .oauth2Login(oauth2Login ->
                         oauth2Login

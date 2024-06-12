@@ -1,8 +1,16 @@
 package com.example.userservice.exceptions;
 
+import com.example.userservice.securities.jwt.AccessDeniedHandler;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.ForbiddenException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,7 +18,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import javax.management.ServiceNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @ControllerAdvice
@@ -51,12 +62,32 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Map<String, String>> handleAllUncaughtException(Exception ex, WebRequest request) {
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("message", "An unexpected error occurred");
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+//    @ExceptionHandler(Exception.class)
+//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+//    public ResponseEntity<Map<String, String>> handleAllUncaughtException(Exception ex, WebRequest request) {
+//        Map<String, String> errorResponse = new HashMap<>();
+//        errorResponse.put("message", "An unexpected error occurred: " + ex.getMessage());
+//        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
+
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<String> handleCustomException(CustomException e) {
+        e.printStackTrace(); // In ra stack trace cho việc debug
+        return ResponseEntity.status(e.getStatus()).body("Error: " + e.getMessage());
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<String> handleForbiddenException(ForbiddenException e) {
+        Logger logger = LoggerFactory.getLogger(AccessDeniedHandler.class);
+        logger.error("Unauthorized error: {}", e.getMessage());
+
+        e.printStackTrace(); // In ra stack trace cho việc debug
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error: " + e.getMessage());
+    }
+
+    @ExceptionHandler(ServiceNotFoundException.class)
+    public ResponseEntity<String> handleServiceNotFoundException(ServiceNotFoundException e) {
+        e.printStackTrace(); // In ra stack trace cho việc debug
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+    }
 }

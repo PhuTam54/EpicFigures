@@ -69,6 +69,7 @@ public class UserSeeder implements CommandLineRunner {
                 roles.add(role);
                 User user;
                 if (i == 0) {
+                    username = new StringBuilder("admin");
                     roles.add(roleAdmin);
                     user = new User(username.toString(), password, address, email.toString(), phone, roles);
                 } else {

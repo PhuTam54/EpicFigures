@@ -3,6 +3,7 @@ package com.example.userservice.services;
 import com.example.userservice.dtos.UserDTO;
 import com.example.userservice.entities.Role;
 import com.example.userservice.entities.User;
+import com.example.userservice.exceptions.CustomException;
 import com.example.userservice.mappers.UserMapper;
 import com.example.userservice.models.requests.UserRequest;
 import com.example.userservice.repositories.RoleRepository;
@@ -11,6 +12,7 @@ import com.example.userservice.statics.enums.ERole;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,7 +50,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO findById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
-            throw new UsernameNotFoundException("Cannot find this user id: " + id);
+            throw new CustomException("Cannot find this user id: " + id, HttpStatus.NOT_FOUND);
         }
         return UserMapper.INSTANCE.userToUserDTO(user);
     }
@@ -64,7 +66,7 @@ public class UserServiceImpl implements UserService {
     public void moveToTrash(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
-            throw new UsernameNotFoundException("Cannot find this user id: " + id);
+            throw new CustomException("Cannot find this user id: " + id, HttpStatus.NOT_FOUND);
         }
         LocalDateTime now = LocalDateTime.now();
         user.setDeletedAt(now);
@@ -75,6 +77,14 @@ public class UserServiceImpl implements UserService {
     public UserDTO createUser(UserRequest userRequest) {
         User user = new User();
         BeanUtils.copyProperties(userRequest, user);
+
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new CustomException("Error: Username is already taken!", HttpStatus.BAD_REQUEST);
+        }
+
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new CustomException("Error: Email is already in use!", HttpStatus.BAD_REQUEST);
+        }
 
         Set<String> strRoles = userRequest.getRoles();
         Set<Role> roles = new HashSet<>();
@@ -116,7 +126,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO updateUser(Long id, UserRequest userRequest) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
-            return null;
+            throw new CustomException("Cannot find this user id: " + id, HttpStatus.NOT_FOUND);
         }
 
         String oldPassword = user.getPassword();
@@ -128,24 +138,24 @@ public class UserServiceImpl implements UserService {
 
         if (strRoles == null) {
             Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                    .orElseThrow(() -> new CustomException("Error: Role is not found.", HttpStatus.NOT_FOUND));
             roles.add(userRole);
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
                     case "admin" -> {
                         Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                                .orElseThrow(() -> new CustomException("Error: Role is not found.", HttpStatus.NOT_FOUND));
                         roles.add(adminRole);
                     }
                     case "mod" -> {
                         Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                                .orElseThrow(() -> new CustomException("Error: Role is not found.", HttpStatus.NOT_FOUND));
                         roles.add(modRole);
                     }
                     default -> {
                         Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                                .orElseThrow(() -> new CustomException("Error: Role is not found.", HttpStatus.NOT_FOUND));
                         roles.add(userRole);
                     }
                 }
@@ -172,7 +182,16 @@ public class UserServiceImpl implements UserService {
     }
   
     public void deleteById(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw new CustomException("Cannot find this user id: " + id, HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            userRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new CustomException("Cannot delete this user", HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
