@@ -24,7 +24,4 @@ public class UserDTO {
     private String gender;
     private String avatar;
     private Set<Role> roles = new HashSet<>();
-
-    public UserDTO(User user) {
-    }
 }
