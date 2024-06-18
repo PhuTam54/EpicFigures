@@ -16,6 +16,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="inventory-service" target="17" />
+      <module name="product-service-old" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -25,6 +26,7 @@
       <module name="eureka-server" options="-parameters" />
       <module name="inventory-service" options="-parameters" />
       <module name="product-service" options="-parameters" />
+      <module name="product-service-old" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>
   </component>
