@@ -3,14 +3,14 @@ spring:
     name: user-service
 
   datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: password
-#    url: jdbc:mysql://localhost:3306/ecommerce_tasc
-#    driverClassName: com.mysql.cj.jdbc.Driver
-#    username: root
-#    password:
+#    url: jdbc:h2:mem:testdb
+#    driverClassName: org.h2.Driver
+#    username: sa
+#    password: password
+    url: jdbc:mysql://localhost:3306/epic_figures_user
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: root
+    password:
 
   jpa:
     show-sql: true
